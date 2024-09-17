@@ -1,5 +1,6 @@
 import { createClient, RedisClientType } from "redis";
 import { MessageFromOrderbook } from "./types";
+import { MessageToEngine } from "./types/to";
 
 
 export class RedisManager {
@@ -21,7 +22,7 @@ export class RedisManager {
         return this.instance;
     }
 
-    public sendAndAwait(message: any) {
+    public sendAndAwait(message: MessageToEngine) {
 
         return new Promise<MessageFromOrderbook>((resolve) => {
             const id = this.getRandomClientId();
@@ -31,7 +32,7 @@ export class RedisManager {
                 resolve(JSON.parse(message));
             });
             this.publisher.lPush("messages", JSON.stringify({ clientId: id, message }));
-        })
+        });
     }
 
     public getRandomClientId() {
