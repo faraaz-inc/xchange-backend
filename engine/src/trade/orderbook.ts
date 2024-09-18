@@ -11,7 +11,7 @@ export class Orderbook {
     lastTradeId: number;
     currentPrice: number;
 
-    //initialise orderbook 
+    //initialise orderbook
     constructor(baseAsset: string, bids: Order[], asks: Order[], lastTradeId: number, currentPrice: number) {
         this.baseAsset = baseAsset;
         this.bids = bids;
@@ -56,7 +56,7 @@ export class Orderbook {
                     fills
                 }
             }
-            //else, place the order on bids and calculate the depth
+            //else, place the order on bids table and calculate the depth
             this.bids.push(order);
             
             //Depth calculation
@@ -92,7 +92,7 @@ export class Orderbook {
                     fills
                 }
             }
-            //if not, place the order in asks and calculate depth
+            //if not, place the order in asks table and calculate depth
             this.asks.push(order);
 
             //Depth calculation
