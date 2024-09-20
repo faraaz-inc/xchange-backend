@@ -10,7 +10,7 @@ export interface Order {
 }
 
 export interface Fill {
-    price: string;
+    price: number;
     quantity: number;
     tradeId: number;
     otherUserId: string;

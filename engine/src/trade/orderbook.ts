@@ -64,7 +64,7 @@ export class Orderbook {
             //check if this price already exists in depth bids array
             const priceIndex = this.depth.bids.findIndex(bid => bid[0] === order.price.toString());
 
-            //if it doesn't, push the current price on the orderbook with the quantity remaining
+            //if it doesn't, push the current price on the orderbook with the remaining quantity
             if(priceIndex === -1) {
                 this.depth.bids.push([order.price.toString(), (order.quantity - order.filled).toString()]);
             }
@@ -73,7 +73,6 @@ export class Orderbook {
                 const newQty = existingQty + (order.quantity - order.filled);
                 this.depth.bids[priceIndex][1] = newQty.toString();
             }
-
 
             return {
                 executedQty,
@@ -141,7 +140,7 @@ export class Orderbook {
 
                 //push in the fills array
                 fills.push({
-                    price: this.asks[i].price.toString(),
+                    price: this.asks[i].price,
                     quantity: filledQty,
                     tradeId: this.lastTradeId++,
                     otherUserId: this.asks[i].userId,
@@ -184,7 +183,7 @@ export class Orderbook {
 
                 //push to fills array
                 fills.push({
-                    price: order.price.toString(),
+                    price: order.price,
                     quantity: filledQty,
                     tradeId: this.lastTradeId++,
                     otherUserId: this.bids[i].userId,
@@ -213,11 +212,22 @@ export class Orderbook {
         return this.depth;
     }
 
-    getOpenOrders(userId: string): Order[] {
+    getOrder(orderId: string) {
+        let order = this.asks.find(a => a.orderId === orderId);
+        if(!order) {
+            order = this.bids.find(b => b.orderId === orderId);
+        }
+        return order;
+    }
+
+    getOpenOrders(userId: string): {asks: Order[], bids:  Order[]} {
         const asks = this.asks.filter(x => x.userId === userId);
         const bids = this.bids.filter(x => x.userId === userId);
 
-        return [...asks, ...bids];
+        return {
+            asks,
+            bids
+        };
     }
 
     cancelBid(order: Order) {
@@ -225,6 +235,15 @@ export class Orderbook {
         if(index !== -1) {
             const price = this.bids[index].price;
             this.bids.splice(index, 1);
+
+            //update depth
+
+            const qtyToReduce = (order.quantity - order.filled);
+            const bid = this.depth.bids.find(b => b[0] === order.price.toString());
+            //@ts-ignore
+            const newPrice = Number(bid[1]) - qtyToReduce;
+            //@ts-ignore
+            this.depth.bids.find(b => b[0] === order.price.toString())[1] = newPrice.toString();
 
             return price;
         }
@@ -235,6 +254,15 @@ export class Orderbook {
         if(index !== -1) {
             const price = this.asks[index].price;
             this.asks.splice(index, 1);
+
+            //update depth
+            const qtyToReduce = order.quantity - order.filled;
+            const ask = this.depth.asks.find(a => a[0] === order.price.toString());
+
+            //@ts-ignore
+            const newPrice = Number(ask[1]) - qtyToReduce;
+            //@ts-ignore
+            this.depth.asks.find(a => a[0] === order.price.toString())[1] = newPrice.toString();
 
             return price;
         }
